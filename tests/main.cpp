@@ -3,7 +3,7 @@
 #include <cassert>
 #include <string.h>
 
-#include "shared_ptr.hpp"
+#include "shared_ptr/shared_ptr.hpp"
 
 template<typename Sig>
 struct test_t
