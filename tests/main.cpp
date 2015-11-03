@@ -54,10 +54,10 @@ int main(int, char const *[])
     char_buffer_t buff(p, std::free);
   }
 
-  {
-    shared_ptr<std::ostream> file_ptr(new std::ofstream("C:\\temp\\tmp.txt", std::ios::beg));
-    write_to_output("Hello, World!", file_ptr);
-  }
+//  {
+//    shared_ptr<std::ostream> file_ptr(new std::ofstream("C:\\temp\\tmp.txt", std::ios::beg));
+//    write_to_output("Hello, World!", file_ptr);
+//  }
 
   {
     shared_ptr<function_t> p(new function_t(inc_delete<int>, &delcount));
