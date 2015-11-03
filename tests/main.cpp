@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <string.h>
 
 #include "shared_ptr.hpp"
 
@@ -46,8 +47,17 @@ int main(int, char const *[])
 
   int delcount = 0;
 
-  shared_ptr<std::ostream> file_ptr(new std::ofstream("C:\\temp\\tmp.txt", std::ios::beg));
-  write_to_output("Hello, World!", file_ptr);
+  {
+    typedef shared_ptr<void, void(*)(void *)> char_buffer_t;
+    char *p = (char *)std::malloc(sizeof("Hello, World!") + 1);
+    std::strcpy(p, "Hello, World!");
+    char_buffer_t buff(p, std::free);
+  }
+
+  {
+    shared_ptr<std::ostream> file_ptr(new std::ofstream("C:\\temp\\tmp.txt", std::ios::beg));
+    write_to_output("Hello, World!", file_ptr);
+  }
 
   {
     shared_ptr<function_t> p(new function_t(inc_delete<int>, &delcount));
@@ -55,7 +65,6 @@ int main(int, char const *[])
 
     shared_ptr<function_t> p3 = do_something(p);
   }
-
   std::cout << "Deleted: " << delcount << std::endl;
 
   assert(delcount == 1);

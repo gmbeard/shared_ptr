@@ -9,7 +9,7 @@ namespace gmb { namespace memory { namespace detail
 {
   struct shared_ptr_handle
   {
-    typedef void(*deleter)(void *);
+    typedef void(*deleter)(shared_ptr_handle *, void *);
 
     shared_ptr_handle(void *p, deleter d)
       : deleter_(d)
@@ -20,7 +20,7 @@ namespace gmb { namespace memory { namespace detail
 
     ~shared_ptr_handle()
     {
-      deleter_(ptr());
+      deleter_(this, ptr());
     }
 
     size_t inc_ref()
@@ -52,27 +52,49 @@ namespace gmb { namespace memory { namespace detail
     deleter deleter_;
   };
 
-  template<typename T>
-  inline void default_delete(void *p)
+  template<typename Deleter>
+  struct shared_ptr_handle_impl : shared_ptr_handle
   {
-    if(p) {
-      reinterpret_cast<T *>(p)->~T();
+    shared_ptr_handle_impl(void *p, Deleter d)
+      : shared_ptr_handle(p, &shared_ptr_handle_impl::delete_impl),
+        d_(d)
+    { }
+
+  private:
+    static void delete_impl(shared_ptr_handle *parent, void *p)
+    {
+      (*static_cast<shared_ptr_handle_impl *>(parent)).d_(p);
     }
 
-    ::operator delete(p);
-  }
+    Deleter d_;
+  };
 
   template<typename T>
-  inline shared_ptr_handle * create_handle(T *p, shared_ptr_handle::deleter d)
+  struct default_deleter
   {
-    void *bytes = ::operator new(sizeof(shared_ptr_handle));
+    void operator()(void *p)
+    {
+      if(p) {
+        reinterpret_cast<T *>(p)->~T();
+      }
+      ::operator delete(p);
+    }
+
+    template<typename U>
+    struct rebind { typedef default_deleter<U> type; };
+  };
+
+  template<typename T, typename Deleter>
+  inline shared_ptr_handle * create_handle(T *p, Deleter d)
+  {
+    void *bytes = ::operator new(sizeof(shared_ptr_handle_impl<Deleter>));
     //  TODO(gmbeard): 
-    //    We should throw if allocation fails. We won't
-    //    always be using allocation that throws itself
+    //    We won't always be using allocation that throws on failure.
+    //    We should throw if bytes == NULL
 
     try {
-      new (bytes) shared_ptr_handle(p, d);
-      static_cast<shared_ptr_handle *>(bytes)->inc_ref();
+      new (bytes) shared_ptr_handle_impl<Deleter>(p, d);
+      static_cast<shared_ptr_handle_impl<Deleter> *>(bytes)->inc_ref();
     }
     catch(...) {
       ::operator delete(bytes);
@@ -86,7 +108,6 @@ namespace gmb { namespace memory { namespace detail
   {
     p->~shared_ptr_handle();
     ::operator delete(p);
-    //std::free(p);
   }
 
 }}}

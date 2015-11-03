@@ -1,29 +1,40 @@
 #ifndef GMB_MEMORY_SHARED_PTR_HPP_INCLUDED
 #define GMB_MEMORY_SHARED_PTR_HPP_INCLUDED 1
 
+#include "detail/traits.hpp"
 #include "detail/shared_ptr_handle.hpp"
 
 namespace gmb { namespace memory
 {
 
-  template<typename T>
+  template<typename T, typename Deleter = 
+    detail::default_deleter<T> >
   class shared_ptr
   {
   public:
     typedef T*        pointer_type;
     typedef T const*  const_pointer_type;
     typedef T         item_type;
-    typedef T&        reference_type;
-    typedef T const&  const_reference_type;
+
+    typedef typename detail::void_handler<T>::reference_type       
+      reference_type;
+    typedef typename detail::void_handler<T>::const_reference_type  
+      const_reference_type;
 
   public:
-    shared_ptr()
-      : handle_(detail::create_handle<T>(0, &detail::default_delete<T>))
+    explicit shared_ptr(Deleter d = Deleter())
+      : handle_(detail::create_handle<T>(0, d))
     { }
 
     template<typename U>
     explicit shared_ptr(U *p)
-      : handle_(detail::create_handle<T>(p, &detail::default_delete<U>))
+      : handle_(detail::create_handle<T>(p, 
+          typename Deleter::template rebind<U>::type()))
+    { }
+
+    template<typename U, typename UDeleter>
+    explicit shared_ptr(U *p, UDeleter d)
+      : handle_(detail::create_handle<T>(p, d))
     { }
 
     shared_ptr(shared_ptr const &other)
@@ -54,7 +65,7 @@ namespace gmb { namespace memory
 
     operator bool() const
     {
-      return (0 != handle);
+      return (0 != handle_);
     }
 
     reference_type operator*()
