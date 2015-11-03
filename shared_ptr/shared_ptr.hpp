@@ -73,6 +73,16 @@ namespace gmb { namespace memory
       return *reinterpret_cast<pointer_type>(handle_->ptr());
     }
 
+    pointer_type operator->()
+    {
+      return reinterpret_cast<pointer_type>(handle_->ptr());
+    }
+
+    const_pointer_type operator->() const
+    {
+      return reinterpret_cast<const_pointer_type>(handle_->ptr());
+    }
+
     const_reference_type operator*() const
     {
       return *reinterpret_cast<const_pointer_type>(handle_->ptr());

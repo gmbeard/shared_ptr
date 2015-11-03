@@ -104,7 +104,7 @@ namespace gmb { namespace memory { namespace detail
     return static_cast<shared_ptr_handle *>(bytes);
   }
 
-  void destroy_handle(shared_ptr_handle *p)
+  inline void destroy_handle(shared_ptr_handle *p)
   {
     p->~shared_ptr_handle();
     ::operator delete(p);
