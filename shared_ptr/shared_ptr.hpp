@@ -28,13 +28,12 @@ namespace gmb { namespace memory
 
     template<typename U>
     explicit shared_ptr(U *p)
-      : handle_(detail::create_handle<T>(p, 
-          typename Deleter::template rebind<U>::type()))
+      : handle_(detail::create_handle<T>(static_cast<T *>(p), Deleter()))
     { }
 
     template<typename U, typename UDeleter>
     explicit shared_ptr(U *p, UDeleter d)
-      : handle_(detail::create_handle<T>(p, d))
+      : handle_(detail::create_handle<T>(static_cast<T *>(p), d))
     { }
 
     shared_ptr(shared_ptr const &other)
@@ -65,7 +64,7 @@ namespace gmb { namespace memory
 
     operator bool() const
     {
-      return (0 != handle_);
+      return (0 != handle_->ptr());
     }
 
     reference_type operator*()
