@@ -26,7 +26,7 @@
 #define GMB_MEMORY_DETAIL_SHARED_PTR_BASE_HPP_INCLUDED 1
 
 #include "shared_ptr_handle.hpp"
-#include "detail/traits.hpp"
+#include "traits.hpp"
 
 namespace gmb { namespace memory { namespace detail
 {

@@ -45,19 +45,19 @@ namespace gmb { namespace memory {
     typedef Deleter  deleter_type;
 
     explicit scoped_ptr(deleter_type d = deleter_type())
-      : scoped_ptr_base(),
+      : detail::scoped_ptr_base<T>(),
         deleter_(d)
     { }
 
     template<typename U>
     explicit scoped_ptr(U *p)
-      : scoped_ptr_base(static_cast<pointer_type>(p)),
+      : detail::scoped_ptr_base<T>(static_cast<pointer_type>(p)),
         deleter_(deleter_type())
     { }
 
     template<typename U, typename UDeleter>
     scoped_ptr(U *p, UDeleter d)
-      : scoped_ptr_base(static_cast<pointer_type>(p)),
+      : detail::scoped_ptr_base<T>(static_cast<pointer_type>(p)),
         deleter_(d)
     { }
 
@@ -94,7 +94,7 @@ namespace gmb { namespace memory {
 
     const_pointer_type operator->() const
     {
-      return ptr_:
+      return ptr_;
     }
 
     reference_type operator*()
