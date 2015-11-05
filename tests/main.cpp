@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "shared_ptr/shared_ptr.hpp"
+#include "scoped_ptr/scoped_ptr.hpp"
 
 template<typename Sig>
 struct test_t
@@ -41,9 +42,33 @@ void write_to_output(char const *val, gmb::memory::shared_ptr<std::ostream> p)
   (*p) << val << std::endl;
 }
 
+void scoped_ptr_tests()
+{
+  using gmb::memory::scoped_ptr;
+
+  //  Char ptr...
+  scoped_ptr<char[]> pChar(new char[sizeof("Hello, World!") + 1]);
+  scoped_ptr<char[]> pChar2;
+  std::strcpy(pChar.get(), "Hello, World!");
+
+  assert(pChar[0] == 'H' && pChar[1] == 'e');
+  pChar2.reset(pChar.release());
+  assert(!pChar);
+  assert(pChar2[0] == 'H' && pChar2[1] == 'e');
+
+  scoped_ptr<int> pInt(new int(42));
+  assert(*pInt == 42);
+
+  scoped_ptr<int> pInt2(pInt.release());
+  assert(!pInt);
+  assert(*pInt2 == 42);
+}
+
 int main(int, char const *[])
 {
   using gmb::memory::shared_ptr;
+
+  scoped_ptr_tests();
 
   int delcount = 0;
 

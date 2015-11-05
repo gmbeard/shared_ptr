@@ -6,9 +6,14 @@ REM needed to set up the VC++ build environment...
 MKDIR build
 PUSHD build
 
-cl.exe /Zi /EHs /I .. ^
-       ..\tests\main.cpp ^
+cl.exe /Zi /EHs ^
+       /I .. ^
+       /I ..\tests ^
+       /I ..\submodules\catch\include ^
+       ..\tests\testmain.cpp ^
+       ..\tests\scoped_ptr_tests.cpp ^
+       ..\tests\shared_ptr_tests.cpp ^
        /MDd /D _DEBUG ^
-       /O2 ^
+       /Od ^
        /link /out:test.exe
 POPD

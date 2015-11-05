@@ -27,41 +27,48 @@
 
 #include "detail/traits.hpp"
 #include "detail/shared_ptr_handle.hpp"
+#include "detail/shared_ptr_base.hpp"
 
 namespace gmb { namespace memory
 {
 
   template<typename T, typename Deleter = 
     detail::default_deleter<T> >
-  class shared_ptr
+  class shared_ptr : public detail::shared_ptr_base<T>
   {
-  public:
-    typedef T*        pointer_type;
-    typedef T const*  const_pointer_type;
-    typedef T         item_type;
+    using detail::shared_ptr_base<T>::handle_;
 
-    typedef typename detail::void_handler<T>::reference_type       
+  public:
+    typedef typename detail::shared_ptr_base<T>::pointer_type          
+      pointer_type;
+    typedef typename detail::shared_ptr_base<T>::const_pointer_type    
+      const_pointer_type;
+    typedef typename detail::shared_ptr_base<T>::reference_type        
       reference_type;
-    typedef typename detail::void_handler<T>::const_reference_type  
+    typedef typename detail::shared_ptr_base<T>::const_reference_type  
       const_reference_type;
+    typedef typename detail::shared_ptr_base<T>::item_type            
+      item_type;
 
   public:
     explicit shared_ptr(Deleter d = Deleter())
-      : handle_(detail::create_handle<T>(0, d))
+      : detail::shared_ptr_base<T>(detail::create_handle<item_type>(0, d))
     { }
 
     template<typename U>
     explicit shared_ptr(U *p)
-      : handle_(detail::create_handle<T>(static_cast<T *>(p), Deleter()))
+      : detail::shared_ptr_base<T>(detail::create_handle<item_type>(
+          static_cast<pointer_type>(p), Deleter()))
     { }
 
     template<typename U, typename UDeleter>
     explicit shared_ptr(U *p, UDeleter d)
-      : handle_(detail::create_handle<T>(static_cast<T *>(p), d))
+      : detail::shared_ptr_base<T>(detail::create_handle<item_type>(
+          static_cast<pointer_type>(p), d))
     { }
 
     shared_ptr(shared_ptr const &other)
-      : handle_(other.handle_)
+      : detail::shared_ptr_base<T>(other.handle_)
     {
       handle_->inc_ref();
     }
@@ -120,10 +127,19 @@ namespace gmb { namespace memory
     {
       return reinterpret_cast<const_pointer_type>(handle_->ptr());
     }
-
-  private:
-    detail::shared_ptr_handle *handle_;
   };
+
+  template<typename T>
+  bool operator==(shared_ptr<T> const &lhs, shared_ptr<T> const &rhs)
+  {
+    return lhs.get() == rhs.get();
+  }
+
+  template<typename T>
+  bool operator!=(shared_ptr<T> const &lhs, shared_ptr<T> const &rhs)
+  {
+    return !(lhs == rhs);
+  }
 }}
 
 #endif //GMB_MEMORY_SHARED_PTR_HPP_INCLUDED

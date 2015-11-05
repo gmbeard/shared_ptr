@@ -103,9 +103,15 @@ namespace gmb { namespace memory { namespace detail
       }
       ::operator delete(p);
     }
+  };
 
-    template<typename U>
-    struct rebind { typedef default_deleter<U> type; };
+  template<typename T>
+  struct default_deleter<T[]>
+  { 
+    void operator()(void *p)
+    {
+      delete [] static_cast<T *>(p);
+    }
   };
 
   template<typename T, typename Deleter>

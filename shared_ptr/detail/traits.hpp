@@ -27,19 +27,59 @@
 
 namespace gmb { namespace memory { namespace detail
 {
+//  template<typename T>
+//  struct void_handler
+//  {
+//    typedef T&        reference_type;
+//    typedef T const&  const_reference_type;
+//  };
+//
+//  template<>
+//  struct void_handler<void>
+//  {
+//    typedef void    reference_type;
+//    typedef void    const_reference_type;
+//  };
 
   template<typename T>
-  struct void_handler
+  struct ptr_traits
   {
-    typedef T&        reference_type;
-    typedef T const&  const_reference_type;
+    typedef T &       reference_type;
+    typedef T const & const_reference_type;
+    typedef T *       pointer_type;
+    typedef T const * const_pointer_type;
+    typedef T         item_type;
+  };
+
+  template<typename T>
+  struct ptr_traits<T[]>
+  {
+    typedef T &       reference_type;
+    typedef T const & const_reference_type;
+    typedef T *       pointer_type;
+    typedef T const * const_pointer_type;
+    typedef T         item_type;
   };
 
   template<>
-  struct void_handler<void>
+  struct ptr_traits<void>
   {
-    typedef void    reference_type;
-    typedef void    const_reference_type;
+    typedef void          reference_type;
+    typedef void          const_reference_type;
+    typedef void *        pointer_type;
+    typedef void const *  const_pointer_type;
+    typedef void          item_type;
+  };
+
+  template<typename T>
+  struct enable_if_array_type
+  { }; 
+
+  template<typename T>
+  struct enable_if_array_type<T[]>
+  {
+    typedef T &       reference_type;
+    typedef T const & const_reference_type;
   };
 
 }}}
