@@ -71,6 +71,30 @@ namespace gmb { namespace memory { namespace detail
     typedef void          item_type;
   };
 
+  struct false_type {};
+  struct true_type {};
+
+  struct shared_ptr_handle;
+  struct shared_from_this_base
+  {
+    shared_from_this_base()
+      : handle_(0)
+    { }
+
+    shared_ptr_handle *handle_;
+  };
+  
+  template<typename T>
+  struct is_shared_from_this {
+    typedef false_type value;
+  };
+
+  template<>
+  struct is_shared_from_this<shared_from_this_base>
+  {
+    typedef true_type value;
+  };
+
   template<typename T>
   struct enable_if_array_type
   { }; 

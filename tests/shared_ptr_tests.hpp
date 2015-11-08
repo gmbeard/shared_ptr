@@ -3,6 +3,16 @@
 
 #include <catch.hpp>
 #include "shared_ptr/shared_ptr.hpp"
+#include "shared_ptr/enable_shared_from_this.hpp"
+
+struct item : 
+  gmb::memory::enable_shared_from_this<item>
+{
+  gmb::memory::shared_ptr<item> get_me()
+  {
+    return shared_from_this();
+  }
+};
 
 TEST_CASE("shared_ptr tests", "[shared_ptr]")
 {
@@ -50,6 +60,36 @@ TEST_CASE("shared_ptr tests", "[shared_ptr]")
     shared_ptr<int, testutils::logged_deleter<int> > p1(new int(42)), p2;
     p2 = p1;
     REQUIRE(p1 == p2);
+  }
+
+  SECTION("Shared pointer to `this` throws from non-shared object")
+  {
+    item i;
+    try {
+      i.get_me();
+      REQUIRE(false);
+    }
+    catch(gmb::memory::not_shared_exception &) {
+      REQUIRE(true);
+    }
+  }
+
+  SECTION("Shared pointer to `this` doesn't throw from shared object")
+  {
+    gmb::memory::shared_ptr<item> p;
+
+    {
+      gmb::memory::shared_ptr<item> i(new item());
+      p = i->get_me();
+    }
+
+    try {
+      p->get_me();
+      REQUIRE(true);
+    }
+    catch(gmb::memory::not_shared_exception &) {
+      REQUIRE(false);
+    }
   }
 }
 

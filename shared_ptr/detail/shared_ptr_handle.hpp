@@ -28,9 +28,13 @@
 #include <cstdio>
 #include <cstdint>
 #include <new>
+#include "traits.hpp"
 
 namespace gmb { namespace memory { namespace detail
 {
+  struct created_from_this_tag {};
+  struct dummy {};
+
   struct shared_ptr_handle
   {
     typedef void(*deleter)(shared_ptr_handle *, void *);
@@ -115,7 +119,7 @@ namespace gmb { namespace memory { namespace detail
   };
 
   template<typename T, typename Deleter>
-  inline shared_ptr_handle * create_handle(T *p, Deleter d)
+  inline shared_ptr_handle * create_handle_impl(T *p, Deleter d, ...)
   {
     void *bytes = ::operator new(sizeof(shared_ptr_handle_impl<Deleter>));
     //  TODO(gmbeard): 
@@ -132,6 +136,38 @@ namespace gmb { namespace memory { namespace detail
     }
 
     return static_cast<shared_ptr_handle *>(bytes);
+  }
+
+  template<typename T, typename Deleter>
+  inline shared_ptr_handle * create_handle_impl(T *p, Deleter d, detail::shared_from_this_base *)
+  {
+    void *bytes = ::operator new(sizeof(shared_ptr_handle_impl<Deleter>));
+    //  TODO(gmbeard): 
+    //    We won't always be using allocation that throws on failure.
+    //    We should throw if bytes == NULL
+
+    try {
+      new (bytes) shared_ptr_handle_impl<Deleter>(p, d);
+      static_cast<shared_ptr_handle_impl<Deleter> *>(bytes)->inc_ref();
+    }
+    catch(...) {
+      ::operator delete(bytes);
+      throw;
+    }
+    
+    if(p) {
+      static_cast<detail::shared_from_this_base *>(p)->handle_ = 
+        static_cast<shared_ptr_handle *>(bytes);
+    }
+
+    return static_cast<shared_ptr_handle *>(bytes);
+  }
+
+  template<typename T, typename Deleter>
+  inline shared_ptr_handle * create_handle(T *p, Deleter d)
+  {
+    typename detail::is_shared_from_this<T>::value t;
+    return create_handle_impl(p, d, p /*typename detail::is_shared_from_this<T>::value()*/);
   }
 
   inline void destroy_handle(shared_ptr_handle *p)

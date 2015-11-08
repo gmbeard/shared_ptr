@@ -50,6 +50,8 @@ namespace gmb { namespace memory
     typedef typename detail::shared_ptr_base<T>::item_type            
       item_type;
 
+    typedef Deleter deleter_type;
+
   public:
     explicit shared_ptr(Deleter d = Deleter())
       : detail::shared_ptr_base<T>(detail::create_handle<item_type>(0, d))
@@ -60,6 +62,13 @@ namespace gmb { namespace memory
       : detail::shared_ptr_base<T>(detail::create_handle<item_type>(
           static_cast<pointer_type>(p), Deleter()))
     { }
+
+    explicit shared_ptr(detail::shared_ptr_handle *h, 
+      detail::created_from_this_tag, Deleter d = Deleter())
+      : detail::shared_ptr_base<T>(h)
+    {
+      handle_->inc_ref();
+    }
 
     template<typename U, typename UDeleter>
     explicit shared_ptr(U *p, UDeleter d)
